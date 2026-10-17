@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManager.Client.Application.DTOs;
 using TaskManager.Client.Application.Features.Auth.Commands.Login;
-using Microsoft.AspNetCore.Authorization;
 
 namespace TaskManager.Client.Api.Controllers;
 

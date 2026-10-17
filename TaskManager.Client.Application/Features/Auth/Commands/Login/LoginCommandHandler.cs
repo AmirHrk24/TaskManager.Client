@@ -5,8 +5,7 @@ using TaskManager.Client.Application.DTOs;
 namespace TaskManager.Client.Application.Features.Auth.Commands.Login;
 
 public sealed class LoginCommandHandler(
-    IAuthApiClient authApiClient,
-    ITokenProvider tokenProvider)
+    IAuthApiClient authApiClient)
     : IRequestHandler<LoginCommand, LoginResponseDto>
 {
     public async Task<LoginResponseDto> Handle(
@@ -19,12 +18,8 @@ public sealed class LoginCommandHandler(
             Password = request.Password
         };
 
-        var response = await authApiClient.LoginAsync(
+        return await authApiClient.LoginAsync(
             loginRequest,
             cancellationToken);
-
-        tokenProvider.SetToken(response.Token);
-
-        return response;
     }
 }

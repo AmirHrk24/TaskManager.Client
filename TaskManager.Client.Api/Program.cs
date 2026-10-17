@@ -2,7 +2,6 @@ using Microsoft.Extensions.Options;
 using TaskManager.Client.Api.Middleware;
 using TaskManager.Client.Application.Abstractions;
 using TaskManager.Client.Application.Features.Tasks.Queries.GetTasks;
-using TaskManager.Client.Infrastructure.Authentication;
 using TaskManager.Client.Infrastructure.HttpClients;
 using TaskManager.Client.Infrastructure.Options;
 using Microsoft.OpenApi;
@@ -41,8 +40,10 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.Configure<TaskApiOptions>(
     builder.Configuration.GetSection(TaskApiOptions.SectionName));
 
-// فعلاً برای تست تک‌کاربره
-builder.Services.AddSingleton<ITokenProvider, TokenProvider>();
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<ForwardAuthorizationHandler>();
 
 builder.Services.AddHttpClient<ITaskApiClient, TaskApiClient>(
     (serviceProvider, httpClient) =>
@@ -52,7 +53,8 @@ builder.Services.AddHttpClient<ITaskApiClient, TaskApiClient>(
             .Value;
 
         httpClient.BaseAddress = new Uri(options.BaseUrl);
-    });
+    })
+    .AddHttpMessageHandler<ForwardAuthorizationHandler>();
 
 builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>(
     (serviceProvider, httpClient) =>

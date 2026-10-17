@@ -1,14 +1,11 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using TaskManager.Client.Application.Abstractions;
 using TaskManager.Client.Application.DTOs;
 using TaskManager.Client.Infrastructure.Exceptions;
 
 namespace TaskManager.Client.Infrastructure.HttpClients;
 
-public sealed class TaskApiClient(
-    HttpClient httpClient,
-    ITokenProvider tokenProvider)
+public sealed class TaskApiClient(HttpClient httpClient)
     : ITaskApiClient
 {
     public async Task<PagedTasksDto> GetTasksAsync(
@@ -16,12 +13,8 @@ public sealed class TaskApiClient(
         int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        using var request = CreateRequest(
-            HttpMethod.Get,
-            $"api/tasks?page={page}&pageSize={pageSize}");
-
-        using var response = await httpClient.SendAsync(
-            request,
+        using var response = await httpClient.GetAsync(
+            $"api/tasks?page={page}&pageSize={pageSize}",
             cancellationToken);
 
         if (!response.IsSuccessStatusCode)
@@ -41,12 +34,8 @@ public sealed class TaskApiClient(
         int id,
         CancellationToken cancellationToken = default)
     {
-        using var request = CreateRequest(
-            HttpMethod.Get,
-            $"api/tasks/{id}");
-
-        using var response = await httpClient.SendAsync(
-            request,
+        using var response = await httpClient.GetAsync(
+            $"api/tasks/{id}",
             cancellationToken);
 
         if (!response.IsSuccessStatusCode)
@@ -61,22 +50,5 @@ public sealed class TaskApiClient(
 
         return result ?? throw new TaskApiException(
             "Task API returned an empty response.");
-    }
-
-    private HttpRequestMessage CreateRequest(
-        HttpMethod method,
-        string requestUri)
-    {
-        var request = new HttpRequestMessage(method, requestUri);
-
-        if (!string.IsNullOrWhiteSpace(tokenProvider.AccessToken))
-        {
-            request.Headers.Authorization =
-                new AuthenticationHeaderValue(
-                    "Bearer",
-                    tokenProvider.AccessToken);
-        }
-
-        return request;
     }
 }
